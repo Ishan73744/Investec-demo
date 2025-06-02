@@ -19,7 +19,6 @@ import {
   ExternalLink,
   Info,
   X,
-  Maximize2,
 } from "lucide-react"
 import { Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from "recharts"
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
@@ -33,6 +32,7 @@ export default function HomePage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [expandedTraceItems, setExpandedTraceItems] = useState<string[]>([])
   const [showArtifactDrawer, setShowArtifactDrawer] = useState(false)
+  const [submittedQuery, setSubmittedQuery] = useState("")
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const traceRef = useRef<HTMLDivElement>(null)
   const traceItemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
@@ -318,6 +318,7 @@ export default function HomePage() {
     e.preventDefault()
     if (!inputValue.trim()) return
 
+    setSubmittedQuery(inputValue)
     setIsLoading(true)
 
     setTimeout(() => {
@@ -549,42 +550,75 @@ export default function HomePage() {
     </button>
   )
 
+  // Initial state - centered landing page
+  if (!showTrace && !isSubmitted && !isLoading) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-1 flex items-center justify-center px-4 md:px-6">
+          <div className="w-full max-w-2xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12">Discover what moves the business</h1>
+            <form onSubmit={handleSubmit} className="relative w-full">
+              <div className="relative h-[100px] rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+                <textarea
+                  ref={inputRef}
+                  placeholder="Ask anything"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  className="absolute inset-0 w-full h-full px-4 py-4 text-base border-0 resize-none focus:outline-none focus:ring-0 text-gray-900 placeholder:text-gray-500"
+                />
+                <button
+                  type="submit"
+                  className={`absolute right-3 bottom-3 rounded-full h-8 w-8 flex items-center justify-center transition-colors ${
+                    inputValue.trim() && !isLoading ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-100"
+                  }`}
+                  disabled={!inputValue.trim() || isLoading}
+                >
+                  {isLoading ? (
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <ArrowRight className={`h-4 w-4 ${inputValue.trim() ? "text-white" : "text-gray-400"}`} />
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Conversation state
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto px-4 md:px-6 py-4">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-8 h-8 rounded-full bg-[#004ce6] flex items-center justify-center text-white font-medium">
-              U
-            </div>
-            <div className="flex-1">
-              <p className="text-[#001742] font-medium">{inputValue}</p>
-            </div>
+      <div className="flex-1 overflow-auto px-4 md:px-6 py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Query Title */}
+          <div className="mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+              {submittedQuery || inputValue}
+            </h1>
           </div>
 
+          {/* Reasoning Trace */}
           {showTrace && (
             <div
               ref={traceRef}
-              className={`mb-8 border border-gray-200 rounded-xl bg-white shadow-lg overflow-hidden transition-all duration-500 ${
-                traceCollapsed ? "max-h-16" : "max-h-[800px]"
+              className={`border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden transition-all duration-500 ${
+                traceCollapsed ? "h-16" : "max-h-[800px]"
               }`}
             >
               <div
-                className="flex items-center justify-between p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 cursor-pointer"
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 cursor-pointer h-16"
                 onClick={() => setTraceCollapsed(!traceCollapsed)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Lightbulb className="h-4 w-4 text-blue-600" />
+                  <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Lightbulb className="h-3 w-3 text-blue-600" />
                   </div>
-                  <div>
-                    <span className="text-lg font-semibold text-gray-900">Reasoning Trace</span>
-                    <p className="text-sm text-gray-500">
-                      {traceCollapsed
-                        ? "Click to expand and view the analysis process"
-                        : "Analyzing TCS' workforce efficiency strategy evolution"}
-                    </p>
-                  </div>
+                  <span className="font-medium text-gray-900">Reasoning Trace</span>
+                  {traceCollapsed && (
+                    <span className="text-sm text-gray-500">Click to expand and view the analysis process</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   {!traceCollapsed && (
@@ -598,9 +632,9 @@ export default function HomePage() {
                     <span>{traceCollapsed ? "Completed" : "Processing..."}</span>
                   </div>
                   {traceCollapsed ? (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <ChevronUp className="h-5 w-5 text-gray-400" />
+                    <ChevronUp className="h-4 w-4 text-gray-400" />
                   )}
                 </div>
               </div>
@@ -694,173 +728,67 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* Answer Block */}
           {isSubmitted && (
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-[#f2f6fe] flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="#004ce6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 17V17.01"
-                    stroke="#004ce6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M9.09009 9.00001C9.32519 8.33167 9.78924 7.76811 10.4 7.40914C11.0108 7.05016 11.729 6.91891 12.4273 7.03871C13.1255 7.15851 13.7589 7.52153 14.2152 8.06353C14.6714 8.60554 14.9211 9.29153 14.92 10C14.92 12 11.92 13 11.92 13"
-                    stroke="#004ce6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1 space-y-0">
-                {/* Continuous text flow without borders */}
-                <div className="prose prose-gray max-w-none">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Executive Summary</h2>
-                  <p className="mb-6">
-                    Over FY 22 → FY 24, TCS pivoted from record hiring to AI-scaled productivity. Headcount jumped{" "}
-                    <strong>+3.8 %</strong> in FY 23 but fell <strong>-2.2 %</strong> in FY 24 even as revenue kept
-                    rising <CitationButton citationId="citation-2" />. Management language tracks the numbers: 2022's
-                    "AI enhances talent" stance <CitationButton citationId="citation-5" /> became 2023's "non-linear
-                    growth levers" <CitationButton citationId="citation-4" /> and, by 2024, a confident "AI-native
-                    workforce" narrative <CitationButton citationId="citation-1" />
-                    that decouples revenue from linear staff growth. Employee attrition peaked at{" "}
-                    <strong>20.1 %</strong> in FY 23 and normalised to <strong>12.5 %</strong> after large-scale Gen-AI
-                    reskilling <CitationButton citationId="citation-6" />, validating the company's efficiency push.
-                  </p>
+            <div className="prose prose-gray max-w-none">
+              <p className="text-lg leading-relaxed mb-6">
+                Over FY 22 → FY 24, TCS pivoted from record hiring to AI-scaled productivity. Headcount jumped{" "}
+                <strong>+3.8 %</strong> in FY 23 but fell <strong>-2.2 %</strong> in FY 24 even as revenue kept rising{" "}
+                <CitationButton citationId="citation-2" />. Management language tracks the numbers: 2022's "AI enhances
+                talent" stance <CitationButton citationId="citation-5" /> became 2023's "non-linear growth levers"{" "}
+                <CitationButton citationId="citation-4" /> and, by 2024, a confident "AI-native workforce" narrative{" "}
+                <CitationButton citationId="citation-1" />
+                that decouples revenue from linear staff growth. Employee attrition peaked at <strong>20.1 %</strong> in
+                FY 23 and normalised to <strong>12.5 %</strong> after large-scale Gen-AI reskilling{" "}
+                <CitationButton citationId="citation-6" />, validating the company's efficiency push.
+              </p>
 
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Narrative Highlights</h2>
-                  <ul className="list-disc pl-5 space-y-3 mb-8">
-                    <li>
-                      <strong>Hiring Collapse vs AI Upskill</strong> Net additions plunge <strong>-78 %</strong> between
-                      FY 22 and FY 24 while AI/ML specialist share (per AR slides) more than doubles, underscoring a
-                      shift from volume hiring to skills density. <CitationButton citationId="citation-2" />
-                    </li>
-                    <li>
-                      <strong>Revenue per Employee</strong> rises from <strong>₹ 32.4 lakh → ₹ 37.8 lakh</strong> (FY
-                      22→24) as automation platforms (ignio™, AI code-gen) boost throughput.{" "}
-                      <CitationButton citationId="citation-2" />
-                    </li>
-                    <li>
-                      <strong>Selective Lateral Intake</strong> FY 24 freshers drop to <strong>11 k</strong>; ~50 % of
-                      hiring is experienced AI talent, reversing FY 22's 80 % fresher mix.{" "}
-                      <CitationButton citationId="citation-3" />
-                    </li>
-                    <li>
-                      <strong>Board-Level Mandate</strong> FY 25 plan caps net additions at <strong>25-30 k</strong>,
-                      with <strong>70 %</strong> lateral AI/cloud hires, cementing the non-linear scale strategy.{" "}
-                      <CitationButton citationId="citation-7" />
-                    </li>
-                  </ul>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Key Insights</h3>
+              <ul className="list-disc pl-5 space-y-3 mb-8">
+                <li>
+                  <strong>Hiring Collapse vs AI Upskill</strong> Net additions plunge <strong>-78 %</strong> between FY
+                  22 and FY 24 while AI/ML specialist share (per AR slides) more than doubles, underscoring a shift from
+                  volume hiring to skills density. <CitationButton citationId="citation-2" />
+                </li>
+                <li>
+                  <strong>Revenue per Employee</strong> rises from <strong>₹ 32.4 lakh → ₹ 37.8 lakh</strong> (FY 22→24)
+                  as automation platforms (ignio™, AI code-gen) boost throughput.{" "}
+                  <CitationButton citationId="citation-2" />
+                </li>
+                <li>
+                  <strong>Selective Lateral Intake</strong> FY 24 freshers drop to <strong>11 k</strong>; ~50 % of
+                  hiring is experienced AI talent, reversing FY 22's 80 % fresher mix.{" "}
+                  <CitationButton citationId="citation-3" />
+                </li>
+                <li>
+                  <strong>Board-Level Mandate</strong> FY 25 plan caps net additions at <strong>25-30 k</strong>, with{" "}
+                  <strong>70 %</strong> lateral AI/cloud hires, cementing the non-linear scale strategy.{" "}
+                  <CitationButton citationId="citation-7" />
+                </li>
+              </ul>
 
-                  <p className="mb-6">
-                    Overall, TCS has executed a three-year playbook:{" "}
-                    <strong>build capacity → harvest efficiency → weaponise AI scale</strong>, achieving higher
-                    productivity and a leaner, more specialised workforce. <CitationButton citationId="citation-9" />
-                  </p>
-
-                  <p className="text-sm text-gray-500 italic mb-8">
-                    (Let me know if you'd like margin trends, AI-investment CAGR, or peer comparisons visualised.)
-                  </p>
-                </div>
-              </div>
+              <p className="text-lg leading-relaxed mb-6">
+                Overall, TCS has executed a three-year playbook:{" "}
+                <strong>build capacity → harvest efficiency → weaponise AI scale</strong>, achieving higher productivity
+                and a leaner, more specialised workforce. <CitationButton citationId="citation-9" />
+              </p>
             </div>
           )}
 
-          {/* TCS Analysis Artifact at the bottom */}
+          {/* Artifact Card */}
           {isSubmitted && (
-            <div className="mt-12">
-              <div
-                className="border border-gray-200 rounded-xl overflow-hidden backdrop-blur-sm bg-white/80 cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => setShowArtifactDrawer(true)}
-              >
-                <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200/70">
-                  <div className="flex items-center gap-3">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                        stroke="#004ce6"
-                        strokeWidth="2"
-                      />
-                      <path d="M14 2v6h6" stroke="#004ce6" strokeWidth="2" />
-                      <path d="M16 13H8" stroke="#004ce6" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M16 17H8" stroke="#004ce6" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M10 9H8" stroke="#004ce6" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900">TCS Workforce Analysis (FY22-FY24)</h2>
-                      <p className="text-sm text-gray-600">Detailed breakdown with charts and data tables</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium px-2 py-1 bg-blue-100/70 text-blue-700 rounded-full">
-                      Data Artifact
-                    </span>
-                    <Maximize2 className="h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/70 p-4">
-                      <h3 className="font-medium text-gray-900 mb-2">FY-by-FY Breakdown</h3>
-                      <p className="text-sm text-gray-600">Comprehensive year-over-year analysis with tone evolution</p>
-                    </div>
-                    <div className="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/70 p-4">
-                      <h3 className="font-medium text-gray-900 mb-2">Workforce Metrics</h3>
-                      <p className="text-sm text-gray-600">Interactive charts showing headcount and attrition trends</p>
-                    </div>
-                    <div className="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/70 p-4">
-                      <h3 className="font-medium text-gray-900 mb-2">AI Specialist Growth</h3>
-                      <p className="text-sm text-gray-600">Visualization of AI talent acquisition strategy</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-center">
-                    <span className="text-sm text-blue-600 font-medium">Click to open detailed analysis →</span>
-                  </div>
-                </div>
+            <div
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white cursor-pointer hover:shadow-md transition-all duration-200"
+              onClick={() => setShowArtifactDrawer(true)}
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">TCS Workforce Analysis (FY22-FY24)</h3>
+                <p className="text-gray-600">Detailed breakdown with charts and data tables</p>
               </div>
             </div>
           )}
         </div>
       </div>
-
-      {!isSubmitted && !showTrace && (
-        <div className="px-4 md:px-6 py-4">
-          <form onSubmit={handleSubmit} className="relative w-full max-w-3xl mx-auto">
-            <div className="relative h-[100px] rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
-              <textarea
-                ref={inputRef}
-                placeholder="Ask anything"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="absolute inset-0 w-full h-full px-4 py-4 text-base border-0 resize-none focus:outline-none focus:ring-0 text-gray-900 placeholder:text-gray-500"
-              />
-              <button
-                type="submit"
-                className={`absolute right-3 bottom-3 rounded-full h-8 w-8 flex items-center justify-center transition-colors ${
-                  inputValue.trim() && !isLoading ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-100"
-                }`}
-                disabled={!inputValue.trim() || isLoading}
-              >
-                {isLoading ? (
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <ArrowRight className={`h-4 w-4 ${inputValue.trim() ? "text-white" : "text-gray-400"}`} />
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* Right-side drawer for artifact details */}
       <div
