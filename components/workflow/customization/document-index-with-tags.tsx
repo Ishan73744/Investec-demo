@@ -226,7 +226,7 @@ export function DocumentIndexWithTags({
             {...provided.draggableProps}
             {...provided.dragHandleProps}
             className={`mb-3 rounded-md border ${
-              section.selected ? "border-[#004ce626] bg-[#f4f9ff]" : "border-[#e1e8f6]"
+              section.selected ? "border-[#004ce6] bg-[#f4f9ff]" : "border-[#e1e8f6]"
             }`}
           >
             <div className="p-3">
