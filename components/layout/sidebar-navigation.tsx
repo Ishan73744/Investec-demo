@@ -2,20 +2,44 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutDashboard, Plus, Settings } from "lucide-react"
+import { AlertCircle, BarChart2, FileText, Home, LayoutDashboard, Plus, Settings } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
 export function SidebarNavigation() {
   const pathname = usePathname()
 
-  // Simplified navigation items - only Home and Workflows
+  // Define navigation items
   const navigationItems = [
     {
       name: "Home",
       href: "/home",
       icon: Home,
       enabled: true,
+    },
+    {
+      name: "Document Intelligence",
+      href: "/document-intelligence",
+      icon: FileText,
+      enabled: true, // Now enabled
+    },
+    {
+      name: "Report Generation",
+      href: "/report-generation",
+      icon: FileText,
+      enabled: false,
+    },
+    {
+      name: "Alerts",
+      href: "/alerts",
+      icon: AlertCircle,
+      enabled: true,
+    },
+    {
+      name: "Peer Comparison",
+      href: "/peer-comparison",
+      icon: BarChart2,
+      enabled: false,
     },
     {
       name: "Workflows",
