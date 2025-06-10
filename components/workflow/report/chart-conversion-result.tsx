@@ -1,14 +1,25 @@
 "use client"
 
-import { useState } from "react"
-import { Download, FileSpreadsheet, RotateCcw, ExternalLink } from "lucide-react"
+import { Download, RefreshCw, FileSpreadsheet } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Chart } from "@/components/workflow/chart-component"
-import { useFileDownload } from "@/hooks/use-file-download"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+interface ChartDataset {
+  name: string
+  data: number[]
+  color: string
+}
+
+interface ChartData {
+  type: string
+  title: string
+  labels: string[]
+  datasets: ChartDataset[]
+}
 
 interface ChartConversionResultProps {
-  chartData: any
+  chartData: ChartData
   chartType: string
   chartOptions: {
     includeDataTable: boolean
@@ -16,9 +27,6 @@ interface ChartConversionResultProps {
     addTrendlines: boolean
   }
   screenshotName: string
-  excelFileUrl?: string
-  extractedData?: any
-  processingTime?: string
   onRestart: () => void
 }
 
@@ -27,151 +35,161 @@ export function ChartConversionResult({
   chartType,
   chartOptions,
   screenshotName,
-  excelFileUrl,
-  extractedData,
-  processingTime,
   onRestart,
 }: ChartConversionResultProps) {
-  const { downloadFile, isDownloading } = useFileDownload()
-  const [downloadError, setDownloadError] = useState<string | null>(null)
+  const handleDownload = () => {
+    // In a real application, this would trigger the download of the Excel file
+    alert("Downloading Excel chart...")
+  }
 
-  const handleDownload = async () => {
-    if (!excelFileUrl) {
-      setDownloadError("Excel file URL not available")
-      return
-    }
-
-    try {
-      setDownloadError(null)
-      const filename = `converted_chart_${Date.now()}.xlsx`
-      await downloadFile(excelFileUrl, filename)
-    } catch (error) {
-      setDownloadError("Download failed. Please try again.")
-      console.error("Download error:", error)
-    }
+  // Function to render a preview of the chart
+  const renderChartPreview = () => {
+    return (
+      <div className="relative aspect-video w-full overflow-hidden rounded-md border border-[#e1e8f6] bg-white p-4">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img
+            src="/excel-bar-chart-data-table.png"
+            alt="Excel Chart Preview"
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Conversion Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[#001742]">
-            <FileSpreadsheet className="h-5 w-5" />
-            Conversion Complete
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-[#8098c4]">Original File:</span>
-              <p className="font-medium text-[#001742]">{screenshotName}</p>
-            </div>
-            <div>
-              <span className="text-[#8098c4]">Chart Type:</span>
-              <p className="font-medium text-[#001742] capitalize">{chartType}</p>
-            </div>
-            {processingTime && (
-              <div>
-                <span className="text-[#8098c4]">Processing Time:</span>
-                <p className="font-medium text-[#001742]">{processingTime}</p>
-              </div>
-            )}
-            <div>
-              <span className="text-[#8098c4]">Data Points:</span>
-              <p className="font-medium text-[#001742]">
-                {extractedData?.dataPoints ||
-                  chartData.datasets.reduce((acc: number, dataset: any) => acc + dataset.data.length, 0)}{" "}
-                extracted
-              </p>
-            </div>
-          </div>
+    <div className="space-y-4">
+      <Card className="border-[#e1e8f6]">
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-[#001742]">Converted Excel Chart</h3>
+            <p className="text-[#4e5971]">
+              Successfully converted <span className="font-medium">{screenshotName}</span> to an editable Excel chart.
+            </p>
 
-          {/* Download Section */}
-          <div className="pt-4 border-t border-[#dee6f5]">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-[#001742]">Excel File Ready</h4>
-                <p className="text-sm text-[#8098c4]">Your chart has been converted to an editable Excel file</p>
-              </div>
-              <div className="flex gap-2">
-                {excelFileUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(excelFileUrl, "_blank")}
-                    className="text-[#004ce6] border-[#004ce6] hover:bg-[#f4f9ff]"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Preview
-                  </Button>
-                )}
-                <Button
-                  onClick={handleDownload}
-                  disabled={isDownloading || !excelFileUrl}
-                  className="bg-[#004ce6] hover:bg-[#0039b8] text-white"
+            <Tabs defaultValue="preview" className="mt-6">
+              <TabsList className="grid w-full grid-cols-2 bg-[#f4f7ff]">
+                <TabsTrigger
+                  value="preview"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#001742]"
                 >
-                  {isDownloading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Excel
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+                  Chart Preview
+                </TabsTrigger>
+                <TabsTrigger value="data" className="data-[state=active]:bg-white data-[state=active]:text-[#001742]">
+                  Data Table
+                </TabsTrigger>
+              </TabsList>
 
-            {downloadError && <p className="text-sm text-red-600 mt-2">{downloadError}</p>}
+              {/* Chart Preview Tab */}
+              <TabsContent value="preview" className="pt-4">
+                {renderChartPreview()}
+              </TabsContent>
+
+              {/* Data Table Tab */}
+              <TabsContent value="data" className="pt-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[500px] border-collapse rounded-md border border-[#e1e8f6]">
+                    <thead>
+                      <tr className="bg-[#f4f7ff]">
+                        <th className="border-b border-[#e1e8f6] p-3 text-left text-sm font-medium text-[#001742]">
+                          Period
+                        </th>
+                        {chartData.datasets.map((dataset) => (
+                          <th
+                            key={dataset.name}
+                            className="border-b border-[#e1e8f6] p-3 text-right text-sm font-medium text-[#001742]"
+                          >
+                            {dataset.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chartData.labels.map((label, i) => (
+                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-[#f9fafc]"}>
+                          <td className="border-b border-[#e1e8f6] p-3 text-sm text-[#001742]">{label}</td>
+                          {chartData.datasets.map((dataset) => (
+                            <td
+                              key={`${dataset.name}-${i}`}
+                              className="border-b border-[#e1e8f6] p-3 text-right text-sm text-[#001742]"
+                            >
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              }).format(dataset.data[i])}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="mt-6 space-y-2">
+              <h4 className="font-medium text-[#001742]">Applied Enhancements:</h4>
+              <ul className="space-y-1 text-sm text-[#4e5971]">
+                <li className="flex items-start gap-2">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                  <span>Fully editable chart with source data</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                  <span>
+                    {chartOptions.applyColorScheme === "default"
+                      ? "Original color scheme preserved"
+                      : `Applied ${chartOptions.applyColorScheme} color scheme`}
+                  </span>
+                </li>
+                {chartOptions.includeDataTable && (
+                  <li className="flex items-start gap-2">
+                    <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                    <span>Included data table with the chart</span>
+                  </li>
+                )}
+                {chartOptions.addTrendlines && (
+                  <li className="flex items-start gap-2">
+                    <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                    <span>Added trendlines to visualize data patterns</span>
+                  </li>
+                )}
+                <li className="flex items-start gap-2">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                  <span>Optimized for printing and presentation</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Chart Preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-[#001742]">Chart Preview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Chart data={chartData.datasets} type={chartType} title={chartData.title} />
-        </CardContent>
-      </Card>
-
-      {/* Applied Options */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-[#001742]">Applied Options</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${chartOptions.includeDataTable ? "bg-green-500" : "bg-gray-300"}`}
-              />
-              <span className="text-[#001742]">Data Table Included</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${chartOptions.applyColorScheme !== "default" ? "bg-green-500" : "bg-gray-300"}`}
-              />
-              <span className="text-[#001742]">Custom Color Scheme</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${chartOptions.addTrendlines ? "bg-green-500" : "bg-gray-300"}`} />
-              <span className="text-[#001742]">Trendlines Added</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
-      <div className="flex justify-center">
-        <Button variant="outline" onClick={onRestart} className="text-[#004ce6] border-[#004ce6] hover:bg-[#f4f9ff]">
-          <RotateCcw className="h-4 w-4 mr-2" />
+      <div className="mt-6 flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          className="gap-2 bg-[#004ce6] hover:bg-[#0047cb] text-white px-4 py-1.5 h-auto"
+          onClick={handleDownload}
+        >
+          <Download className="h-4 w-4" />
+          Download Excel File
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6] px-4 py-1.5 h-auto"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Open in Excel Online
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6] px-4 py-1.5 h-auto"
+          onClick={onRestart}
+        >
+          <RefreshCw className="h-4 w-4" />
           Convert Another Chart
         </Button>
       </div>
