@@ -48,3 +48,34 @@ export interface Message {
   showCustomization?: boolean
   step?: number
 }
+
+export interface TimelineEvent {
+  id: string
+  date: string
+  title: string
+  description: string
+  sourceUrl: string
+  type: "case" | "article" | "alert"
+}
+
+export interface ManagementProfile {
+  id: string
+  name: string
+  title: string
+  imageUrl: string
+  linkedinUrl: string
+  courtChecks: TimelineEvent[]
+  amlChecks: TimelineEvent[]
+}
+
+export interface CompanyScreeningData {
+  id: string
+  name: string
+  logoUrl: string
+  sector: string
+  description: string
+  websiteUrl: string
+  courtChecks: TimelineEvent[]
+  amlChecks: TimelineEvent[]
+  management: ManagementProfile[]
+}
