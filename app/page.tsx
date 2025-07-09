@@ -1,111 +1,110 @@
-import {
-  BarChart3,
-  Building,
-  FileSearch,
-  FileText,
-  GanttChartSquare,
-  Library,
-  PieChart,
-  ScanLine,
-  ShieldCheck,
-  Users,
-  ZoomIn,
-} from "lucide-react"
+import type React from "react"
 import Link from "next/link"
+import {
+  ArrowRight,
+  BarChartBig,
+  Building2,
+  FileSearch,
+  Microscope,
+  ScanText,
+  Scale,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react"
 
 const workflowCategories = [
   {
-    title: "Screening & Due Diligence",
+    name: "Financial Analysis",
     workflows: [
       {
-        title: "Company & Management Screening",
-        description: "Conduct background checks on companies and their key personnel.",
-        href: "/workflows/company-management-screening",
-        icon: ShieldCheck,
-      },
-      {
-        title: "IPO Screening",
-        description: "Analyze and screen upcoming Initial Public Offerings.",
-        href: "/workflows/ipo-screening",
-        icon: Building,
-      },
-    ],
-  },
-  {
-    title: "Financial Analysis",
-    workflows: [
-      {
-        title: "Peer Comparison",
-        description: "Compare financial metrics of a company against its peers.",
-        href: "/workflows/peer-comparison",
-        icon: Users,
-      },
-      {
-        title: "Ratio Analysis",
+        name: "Ratio Analysis",
         description: "Calculate and analyze key financial ratios from statements.",
         href: "/workflows/ratio-analysis",
-        icon: PieChart,
+        icon: Scale,
       },
       {
-        title: "Anomaly Detection",
+        name: "Anomaly Detection",
         description: "Identify unusual patterns and outliers in financial data.",
         href: "/workflows/anomaly-detection",
-        icon: ZoomIn,
+        icon: Microscope,
+      },
+      {
+        name: "Peer Comparison",
+        description: "Benchmark a company against its competitors on key metrics.",
+        href: "/workflows/peer-comparison",
+        icon: BarChartBig,
+      },
+      {
+        name: "Quarterly Results Extractor",
+        description: "Extract key data points from quarterly earnings reports.",
+        href: "/workflows/quarterly-results-extractor",
+        icon: ScanText,
       },
     ],
   },
   {
-    title: "Market & Industry Research",
+    name: "Market & Company Research",
     workflows: [
       {
-        title: "Market & Industry Research",
-        description: "Generate comprehensive reports on specific markets or industries.",
+        name: "Market & Industry Research",
+        description: "Generate a comprehensive report on a specific market or industry.",
         href: "/workflows/market-industry-research",
-        icon: GanttChartSquare,
+        icon: Search,
       },
       {
-        title: "Industry Sizing",
-        description: "Estimate the market size and potential of an industry.",
+        name: "Industry Sizing",
+        description: "Estimate the market size and growth potential of an industry.",
         href: "/workflows/industry-sizing",
-        icon: BarChart3,
+        icon: SlidersHorizontal,
+      },
+      {
+        name: "Company One-Pager",
+        description: "Create a concise one-page summary of a company.",
+        href: "/workflows/company-one-pager",
+        icon: FileSearch,
       },
     ],
   },
   {
-    title: "Data Extraction & Summarization",
+    name: "Screening & Due Diligence",
     workflows: [
       {
-        title: "Financial Statement Extraction",
+        name: "IPO Screening",
+        description: "Analyze and screen upcoming Initial Public Offerings.",
+        href: "/workflows/ipo-screening",
+        icon: Building2,
+      },
+      {
+        name: "Company & Management Screening",
+        description: "Conduct background checks on companies and their key personnel.",
+        href: "/workflows/company-management-screening",
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    name: "Document & Data Extraction",
+    workflows: [
+      {
+        name: "Financial Statement Extraction",
         description: "Extract structured data from financial statement documents.",
         href: "/workflows/financial-statement-extraction",
+        icon: ScanText,
+      },
+      {
+        name: "Document Summary",
+        description: "Generate concise summaries of long documents.",
+        href: "/workflows/document-summary",
         icon: FileSearch,
       },
       {
-        title: "Quarterly Results Extractor",
-        description: "Pull key metrics from quarterly earnings reports.",
-        href: "/workflows/quarterly-results-extractor",
-        icon: FileText,
-      },
-      {
-        title: "Screenshot to Chart/Table",
+        name: "Screenshot to Chart/Table",
         description: "Convert images of charts or tables into editable data.",
         href: "/workflows/screenshot-chart",
-        icon: ScanLine,
+        icon: ScanText,
       },
       {
-        title: "Document Summary",
-        description: "Generate concise summaries of long documents.",
-        href: "/workflows/document-summary",
-        icon: Library,
-      },
-      {
-        title: "Company One-Pager",
-        description: "Create a single-page summary of a company profile.",
-        href: "/workflows/company-one-pager",
-        icon: Building,
-      },
-      {
-        title: "RERA Filings",
+        name: "RERA Filings",
         description: "Extract and analyze data from RERA filing documents.",
         href: "/workflows/rera-filings",
         icon: FileSearch,
@@ -114,34 +113,53 @@ const workflowCategories = [
   },
 ]
 
+const WorkflowCard = ({
+  name,
+  description,
+  href,
+  icon: Icon,
+}: { name: string; description: string; href: string; icon: React.ElementType }) => (
+  <Link
+    href={href}
+    className="group block rounded-lg border bg-white p-4 transition-all hover:shadow-md hover:border-blue-200"
+  >
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eaf0fc] text-[#004ce6]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800">{name}</h3>
+        </div>
+      </div>
+      <ArrowRight className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-blue-600" />
+    </div>
+    <p className="mt-2 text-sm text-gray-600">{description}</p>
+  </Link>
+)
+
 export default function WorkflowsPage() {
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F4F9FF]">
-      <main className="container mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-gray-800">Workflows</h1>
-        <p className="mt-2 text-gray-600">Automate your financial analysis and research tasks.</p>
+    <div className="flex-1 bg-[#F9FBFF] p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Workflows</h1>
+          <p className="mt-2 text-gray-600">Automate your research and analysis tasks with our pre-built workflows.</p>
+        </header>
 
-        {workflowCategories.map((category) => (
-          <div key={category.title} className="mt-10">
-            <h2 className="text-xl font-semibold text-gray-700">{category.title}</h2>
-            <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {category.workflows.map((workflow) => (
-                <Link href={workflow.href} key={workflow.title}>
-                  <div className="flex h-full transform flex-col justify-between rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg">
-                    <div>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-100 text-blue-600">
-                        <workflow.icon className="h-6 w-6" />
-                      </div>
-                      <h3 className="mt-4 text-lg font-semibold text-gray-800">{workflow.title}</h3>
-                      <p className="mt-2 text-sm text-gray-600">{workflow.description}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
-      </main>
+        <div className="space-y-10">
+          {workflowCategories.map((category) => (
+            <section key={category.name}>
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">{category.name}</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {category.workflows.map((workflow) => (
+                  <WorkflowCard key={workflow.name} {...workflow} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
