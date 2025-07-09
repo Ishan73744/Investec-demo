@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { AlertCircle, BarChart2, FileText, Home, LayoutDashboard, Plus, Settings, ShieldCheck } from "lucide-react"
+import { AlertCircle, BarChart2, FileText, Home, LayoutDashboard, Plus, Settings } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
@@ -47,12 +47,6 @@ export function SidebarNavigation() {
       icon: LayoutDashboard,
       enabled: true,
     },
-    {
-      name: "Company Screening",
-      href: "/workflows/company-management-screening",
-      icon: ShieldCheck,
-      enabled: true,
-    },
   ]
 
   return (
@@ -69,7 +63,7 @@ export function SidebarNavigation() {
         </Link>
       </div>
       <div className="p-4">
-        <Button variant="outline" className="w-full justify-start gap-2 border-[#EAF0FC] text-[#004ce6] bg-transparent">
+        <Button variant="outline" className="w-full justify-start gap-2 border-[#EAF0FC] text-[#004ce6]">
           <Plus className="h-4 w-4" />
           <span className="font-medium">New chat</span>
         </Button>
