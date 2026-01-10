@@ -2,20 +2,44 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LayoutDashboard, Plus, Settings } from "lucide-react"
+import { AlertCircle, BarChart2, FileText, Home, LayoutDashboard, Plus, Settings } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
 export function SidebarNavigation() {
   const pathname = usePathname()
 
-  // Simplified navigation items - only Home and Workflows
+  // Define navigation items
   const navigationItems = [
     {
       name: "Home",
       href: "/home",
       icon: Home,
       enabled: true,
+    },
+    {
+      name: "Document Intelligence",
+      href: "/document-intelligence",
+      icon: FileText,
+      enabled: true, // Now enabled
+    },
+    {
+      name: "Report Generation",
+      href: "/report-generation",
+      icon: FileText,
+      enabled: false,
+    },
+    {
+      name: "Alerts",
+      href: "/alerts",
+      icon: AlertCircle,
+      enabled: true,
+    },
+    {
+      name: "Peer Comparison",
+      href: "/peer-comparison",
+      icon: BarChart2,
+      enabled: false,
     },
     {
       name: "Workflows",
@@ -39,15 +63,16 @@ export function SidebarNavigation() {
         </Link>
       </div>
       <div className="p-4">
-        <Button variant="outline" className="w-full justify-start gap-2 border-[#EAF0FC] text-[#004ce6]">
+        <Button variant="outline" className="w-full justify-start gap-2 border-[#EAF0FC] text-[#004ce6] bg-transparent">
           <Plus className="h-4 w-4" />
           <span className="font-medium">New chat</span>
         </Button>
       </div>
       <nav className="space-y-1 px-2">
         {navigationItems.map((item) => {
+          const isWorkflowPage = pathname.startsWith("/workflows") || pathname === "/"
           const isActive =
-            (item.href === "/" && pathname === "/") || (item.href !== "/" && pathname.startsWith(item.href))
+            item.name === "Workflows" ? isWorkflowPage : item.href !== "/" && pathname.startsWith(item.href)
 
           return (
             <Link

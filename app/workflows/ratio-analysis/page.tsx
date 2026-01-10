@@ -405,35 +405,34 @@ export default function RatioAnalysisPage() {
                         </div>
                       </div>
                       <div className="mt-6 flex flex-wrap gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6]"
                         >
                           <Download className="h-4 w-4" />
                           Download Report
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6]"
                         >
                           <Clock className="h-4 w-4" />
                           Set Alert for Changes
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6]"
                         >
                           <BarChart4 className="h-4 w-4" />
                           Compare with Competitor
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover
-                          className=\"gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6]"
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6]"
                         >
                           <Plus className="h-4 w-4" />
                           Save to Project

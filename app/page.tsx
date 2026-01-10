@@ -1,79 +1,162 @@
+import type React from "react"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import {
+  ArrowRight,
+  BarChartBig,
+  Building2,
+  FileSearch,
+  Microscope,
+  ScanText,
+  Scale,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react"
 
-// Updated workflows data with only the 4 specified workflows
-const workflows = [
+const workflowCategories = [
   {
-    name: "Screenshot Chart to Excel",
-    description:
-      "Upload a screenshot of any chart and convert it into an editable Excel chart, allowing you to edit it in the browser and integrate it into your reports.",
-    steps: 3,
-    path: "/workflows/screenshot-chart",
+    name: "Financial Analysis",
+    workflows: [
+      {
+        name: "Ratio Analysis",
+        description: "Calculate and analyze key financial ratios from statements.",
+        href: "/workflows/ratio-analysis",
+        icon: Scale,
+      },
+      {
+        name: "Anomaly Detection",
+        description: "Identify unusual patterns and outliers in financial data.",
+        href: "/workflows/anomaly-detection",
+        icon: Microscope,
+      },
+      {
+        name: "Peer Comparison",
+        description: "Benchmark a company against its competitors on key metrics.",
+        href: "/workflows/peer-comparison",
+        icon: BarChartBig,
+      },
+      {
+        name: "Quarterly Results Extractor",
+        description: "Extract key data points from quarterly earnings reports.",
+        href: "/workflows/quarterly-results-extractor",
+        icon: ScanText,
+      },
+    ],
   },
   {
-    name: "Financial Statement Extraction from PDF to Excel",
-    description:
-      "Detect and extract the three key financial statements (Income Statement, Balance Sheet, Cash Flow) from an uploaded PDF and convert them into Excel format for further analysis.",
-    steps: 4,
-    path: "/workflows/financial-statement-extraction",
+    name: "Market & Company Research",
+    workflows: [
+      {
+        name: "Market & Industry Research",
+        description: "Generate a comprehensive report on a specific market or industry.",
+        href: "/workflows/market-industry-research",
+        icon: Search,
+      },
+      {
+        name: "Industry Sizing",
+        description: "Estimate the market size and growth potential of an industry.",
+        href: "/workflows/industry-sizing",
+        icon: SlidersHorizontal,
+      },
+      {
+        name: "Company One-Pager",
+        description: "Create a concise one-page summary of a company.",
+        href: "/workflows/company-one-pager",
+        icon: FileSearch,
+      },
+    ],
   },
   {
-    name: "Company One-Pagers – Strategic Summary Profiles",
-    description:
-      "Concise, standardized one-page summaries of companies covering key business details, product focus, financial performance, manufacturing footprint, and strategic transactions — for quick partner-level decision-making and opportunity assessment.",
-    steps: 1,
-    path: "/workflows/company-one-pager",
+    name: "Screening & Due Diligence",
+    workflows: [
+      {
+        name: "IPO Screening",
+        description: "Analyze and screen upcoming Initial Public Offerings.",
+        href: "/workflows/ipo-screening",
+        icon: Building2,
+      },
+      {
+        name: "Company & Management Screening",
+        description: "Conduct background checks on companies and their key personnel.",
+        href: "/workflows/company-management-screening",
+        icon: Building2,
+      },
+    ],
   },
   {
-    name: "Peer Set Generation & Comparative Table Creation",
-    description:
-      "Enter a company name and automatically generate a peer set with a custom comparative table showing key financial metrics, valuations, and performance indicators.",
-    steps: 3,
-    path: "/workflows/peer-comparison",
+    name: "Document & Data Extraction",
+    workflows: [
+      {
+        name: "Financial Statement Extraction",
+        description: "Extract structured data from financial statement documents.",
+        href: "/workflows/financial-statement-extraction",
+        icon: ScanText,
+      },
+      {
+        name: "Document Summary",
+        description: "Generate concise summaries of long documents.",
+        href: "/workflows/document-summary",
+        icon: FileSearch,
+      },
+      {
+        name: "Screenshot to Chart/Table",
+        description: "Convert images of charts or tables into editable data.",
+        href: "/workflows/screenshot-chart",
+        icon: ScanText,
+      },
+      {
+        name: "RERA Filings",
+        description: "Extract and analyze data from RERA filing documents.",
+        href: "/workflows/rera-filings",
+        icon: FileSearch,
+      },
+    ],
   },
 ]
 
-export default function Page() {
+const WorkflowCard = ({
+  name,
+  description,
+  href,
+  icon: Icon,
+}: { name: string; description: string; href: string; icon: React.ElementType }) => (
+  <Link
+    href={href}
+    className="group block rounded-lg border bg-white p-4 transition-all hover:shadow-md hover:border-blue-200"
+  >
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eaf0fc] text-[#004ce6]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-800">{name}</h3>
+        </div>
+      </div>
+      <ArrowRight className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-blue-600" />
+    </div>
+    <p className="mt-2 text-sm text-gray-600">{description}</p>
+  </Link>
+)
+
+export default function WorkflowsPage() {
   return (
-    <div className="h-full overflow-auto scrollbar-hide">
-      <div className="px-6 py-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {workflows.map((workflow, index) => (
-            <Link
-              key={index}
-              href={workflow.path}
-              className="rounded-lg border border-[#e1e8f6] bg-[#FBFDFF] p-4 transition-colors hover:bg-white hover:shadow-sm"
-            >
-              <h3 className="text-base font-medium text-[#001742]">{workflow.name}</h3>
-              <p className="mt-2 text-sm text-[#6e7b96]">{workflow.description}</p>
-              <div className="mt-2 flex items-center gap-1">
-                <div className="text-xs text-[#8098c4]">{workflow.steps} steps</div>
-                <ArrowRight className="h-3 w-3 text-[#8098c4] mx-1" />
-                <div className="flex items-center gap-1 bg-[#f2f4f7] rounded-md px-2 py-0.5">
-                  {workflow.name === "Screenshot Chart to Excel" ||
-                  workflow.name === "Financial Statement Extraction from PDF to Excel" ||
-                  workflow.name === "Peer Set Generation & Comparative Table Creation" ? (
-                    <>
-                      <img
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Frame%201000004581-qMr1tksNcWjItvl6u5fAyfEgFFjAQT.png"
-                        alt="Excel"
-                        className="w-3 h-4"
-                      />
-                      <span className="text-xs font-medium text-[#4e5971]">Excel</span>
-                    </>
-                  ) : (
-                    <>
-                      <img
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/PDF%20Icon-ymdgoZrxsua2O7fNTjvAQNa9lS4EZV.png"
-                        alt="PDF"
-                        className="w-3 h-4"
-                      />
-                      <span className="text-xs font-medium text-[#4e5971]">PDF</span>
-                    </>
-                  )}
-                </div>
+    <div className="flex-1 bg-[#F9FBFF] p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Workflows</h1>
+          <p className="mt-2 text-gray-600">Automate your research and analysis tasks with our pre-built workflows.</p>
+        </header>
+
+        <div className="space-y-10">
+          {workflowCategories.map((category) => (
+            <section key={category.name}>
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">{category.name}</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {category.workflows.map((workflow) => (
+                  <WorkflowCard key={workflow.name} {...workflow} />
+                ))}
               </div>
-            </Link>
+            </section>
           ))}
         </div>
       </div>
