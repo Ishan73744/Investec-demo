@@ -116,8 +116,4 @@ export class WorkflowEngine {
       }
     }
   }
-
-  public clearActiveCustomization(): void {
-    this.activeCustomizationId = null
-  }
 }

@@ -10,7 +10,6 @@ import { WorkflowEngine } from "@/lib/workflow/workflow-engine"
 import type { MessageProps } from "@/components/workflow/chat-message"
 import { CompanyNameInput } from "@/components/workflow/customization/company-name-input"
 import { CompanyProfile } from "@/components/workflow/report/company-profile"
-import { FinancialFileUploader } from "@/components/workflow/customization/financial-file-uploader"
 
 // Define the workflow configuration
 const workflowConfig = {
@@ -21,26 +20,21 @@ const workflowConfig = {
   steps: [
     {
       id: 1,
-      title: "Enter Company Details",
-      description: "Provide the name and website of the company you want to analyze",
+      title: "Enter Company Name",
+      description: "Provide the name of the company you want to analyze",
     },
     {
       id: 2,
-      title: "Upload Financial Data",
-      description: "Upload or select financial data for enhanced insights",
-    },
-    {
-      id: 3,
       title: "Data Collection",
       description: "Gathering company information from various sources",
     },
     {
-      id: 4,
+      id: 3,
       title: "Profile Generation",
       description: "Creating a comprehensive one-page company profile",
     },
     {
-      id: 5,
+      id: 4,
       title: "Review Results",
       description: "Review and download the company profile",
     },
@@ -48,8 +42,8 @@ const workflowConfig = {
   initialMessage: (
     <div className="space-y-4">
       <p className="text-[#001742]">
-        Welcome to the Company One-Pager workflow. Please enter the name and website of the company you'd like to create
-        a strategic summary profile for.
+        Welcome to the Company One-Pager workflow. Please enter the name of the company you'd like to create a strategic
+        summary profile for.
       </p>
     </div>
   ),
@@ -320,8 +314,6 @@ export default function CompanyOnePagerPage() {
   const [isMounted, setIsMounted] = useState(false)
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
   const [companyData, setCompanyData] = useState<any>(null)
-  const [websiteUrl, setWebsiteUrl] = useState<string>("")
-  const [financialFile, setFinancialFile] = useState<string | null>(null)
 
   // References
   const contentContainerRef = useRef<HTMLDivElement>(null)
@@ -335,7 +327,7 @@ export default function CompanyOnePagerPage() {
   }, [])
 
   // Handle company name submission
-  const handleCompanySubmit = (companyName: string, companyWebsite: string) => {
+  const handleCompanySubmit = (companyName: string) => {
     // Normalize company name for matching
     const normalizedName = companyName.toLowerCase().replace(/\s+/g, "")
 
@@ -353,23 +345,13 @@ export default function CompanyOnePagerPage() {
     }
 
     setSelectedCompany(matchedCompany)
-    setWebsiteUrl(companyWebsite)
-    setCurrentStep(2) // Move to financial data upload step
+    setCurrentStep(2) // Move to data collection step
 
     // Add user message
-    workflowEngine.addMessage("user", `I'd like to generate a one-pager for ${companyName} (${companyWebsite})`)
-  }
-
-  // Add a new function to handle financial file upload
-  const handleFinancialFileUpload = (fileName: string) => {
-    setFinancialFile(fileName)
-    setCurrentStep(3) // Move to data collection step
-
-    // Add user message about the financial file
-    workflowEngine.addMessage("user", `I've uploaded the financial file: ${fileName}`)
+    workflowEngine.addMessage("user", `I'd like to generate a one-pager for ${companyName}`)
 
     // Show data collection process
-    simulateDataCollection(selectedCompany as string)
+    simulateDataCollection(matchedCompany)
   }
 
   // Simulate data collection process
@@ -377,7 +359,6 @@ export default function CompanyOnePagerPage() {
     const steps = [
       "Searching for company information...",
       "Retrieving financial data...",
-      "Processing uploaded financial file...", // Add this step
       "Analyzing company structure...",
       "Gathering product portfolio details...",
       "Collecting manufacturing information...",
@@ -406,17 +387,9 @@ export default function CompanyOnePagerPage() {
 
   // Show company profile
   const showCompanyProfile = (companyKey: string) => {
-    setCurrentStep(5) // Update to step 5 (Review Results)
+    setCurrentStep(4) // Move to results step
     setIsProfileComplete(true)
-
-    // Create a copy of the company data with the additional information
-    const companyDataWithExtras = {
-      ...sampleCompanyData[companyKey as keyof typeof sampleCompanyData],
-      websiteUrl: websiteUrl,
-      financialFile: financialFile,
-    }
-
-    setCompanyData(companyDataWithExtras)
+    setCompanyData(sampleCompanyData[companyKey as keyof typeof sampleCompanyData])
 
     // Clear active customization before showing the final result
     workflowEngine.clearActiveCustomization()
@@ -427,11 +400,12 @@ export default function CompanyOnePagerPage() {
       "system",
       <div className="space-y-4">
         <p className="text-[#001742]">
-          I've compiled a comprehensive one-page strategic profile for {companyDataWithExtras.name}. Here's the summary:
+          I've compiled a comprehensive one-page strategic profile for{" "}
+          {sampleCompanyData[companyKey as keyof typeof sampleCompanyData].name}. Here's the summary:
         </p>
 
         <CompanyProfile
-          companyData={companyDataWithExtras}
+          companyData={sampleCompanyData[companyKey as keyof typeof sampleCompanyData]}
           onRestart={() => {
             // Reset the workflow
             const initialMessages = workflowEngine.initialize()
@@ -440,8 +414,6 @@ export default function CompanyOnePagerPage() {
             setCurrentStep(1)
             setIsProfileComplete(false)
             setSelectedCompany(null)
-            setWebsiteUrl("")
-            setFinancialFile(null)
             setCompanyData(null)
           }}
         />
@@ -464,8 +436,6 @@ export default function CompanyOnePagerPage() {
     switch (currentStep) {
       case 1:
         return <CompanyNameInput onSubmit={handleCompanySubmit} />
-      case 2:
-        return <FinancialFileUploader onUpload={handleFinancialFileUpload} />
       default:
         return null
     }

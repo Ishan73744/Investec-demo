@@ -1,277 +1,256 @@
 "use client"
 
-import { useState } from "react"
+import { Download, RefreshCw, FileText, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { FileText, Download, RefreshCw, Calendar, FileIcon, Tag, BarChart2 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface SummaryResultProps {
-  documentNames: string[]
-  sections: Array<{
-    id: string
-    title: string
-    selected?: boolean
-    tags?: string[]
-    description?: string
-  }>
-  tablesAndCharts: Array<{
-    id: string
-    type: string
-    title: string
-    selected?: boolean
-    description?: string
-    category?: string
-  }>
-  summaryDepth: "light" | "medium" | "deep"
+  documentName: string
+  sections: Array<{ id: string; title: string; selected?: boolean }>
+  customSections: Array<{ id: string; title: string; description: string }>
   summaryOptions: {
-    includeKeyQuotes?: boolean
-    includeVisualElements?: boolean
+    length: string
+    tone: string
+    includeKeyQuotes: boolean
+    includeVisualElements: boolean
   }
   onRestart: () => void
 }
 
 export function SummaryResult({
-  documentNames,
+  documentName,
   sections,
-  tablesAndCharts,
-  summaryDepth,
+  customSections,
   summaryOptions,
   onRestart,
 }: SummaryResultProps) {
-  const [isDownloading, setIsDownloading] = useState(false)
-
-  // Format the current date
-  const formattedDate = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
-
-  // Simulate download
   const handleDownload = () => {
-    setIsDownloading(true)
-    setTimeout(() => {
-      setIsDownloading(false)
-    }, 2000)
+    // In a real application, this would trigger the download of the PDF file
+    alert("Downloading summary as PDF...")
   }
 
-  // Generate sample content for each section based on tags
-  const generateSectionContent = (section: (typeof sections)[0], depth: "light" | "medium" | "deep") => {
-    const tags = section.tags || []
-    const tagText = tags.join(", ")
+  // Generate sample summary content based on the selected options
+  const generateSampleContent = (sectionTitle: string) => {
+    const lengthMultiplier = summaryOptions.length === "short" ? 1 : summaryOptions.length === "medium" ? 2 : 3
+    const paragraphCount = lengthMultiplier * 2
 
-    if (depth === "light") {
-      return (
-        <p className="text-[#4e5971] mb-4">
-          This section focuses on {tagText}. Key insights are highlighted with minimal detail.
-        </p>
+    const content = []
+
+    for (let i = 0; i < paragraphCount; i++) {
+      content.push(
+        <p key={i} className="mb-3 text-[#4e5971]">
+          {getSampleParagraph(sectionTitle, summaryOptions.tone, i)}
+        </p>,
       )
-    } else if (depth === "medium") {
-      return (
-        <>
-          <p className="text-[#4e5971] mb-4">
-            This section provides a balanced overview of {tagText}, with moderate detail on core concepts.
-          </p>
-          <p className="text-[#4e5971] mb-4">
-            The analysis covers the main aspects while maintaining a concise presentation of information.
-          </p>
-        </>
+    }
+
+    if (summaryOptions.includeKeyQuotes && sectionTitle !== "Conclusion") {
+      content.push(
+        <blockquote key="quote" className="border-l-4 border-[#004ce6] pl-4 italic my-4 text-[#4e5971]">
+          "{getRandomQuote(sectionTitle)}"
+        </blockquote>,
       )
+    }
+
+    if (
+      summaryOptions.includeVisualElements &&
+      (sectionTitle === "Key Findings" ||
+        sectionTitle === "Market Analysis" ||
+        sectionTitle === "Financial Projections")
+    ) {
+      content.push(
+        <div key="visual" className="my-4 p-4 bg-[#f4f9ff] rounded-md border border-[#dee6f5] text-center">
+          <p className="text-sm text-[#6e7b96]">[Visual element: {getVisualElementType(sectionTitle)}]</p>
+        </div>,
+      )
+    }
+
+    return content
+  }
+
+  // Helper function to get a sample paragraph
+  const getSampleParagraph = (sectionTitle: string, tone: string, index: number) => {
+    const toneAdjective = tone === "professional" ? "clear" : tone === "casual" ? "straightforward" : "comprehensive"
+    const toneAdverb = tone === "professional" ? "effectively" : tone === "casual" ? "simply" : "thoroughly"
+
+    if (index === 0) {
+      return `This ${toneAdjective} ${sectionTitle.toLowerCase()} provides a ${tone} overview of the key points discussed in the document. The analysis ${toneAdverb} demonstrates the main concepts and findings related to this section.`
     } else {
-      return (
-        <>
-          <p className="text-[#4e5971] mb-4">
-            This section delivers an in-depth analysis of {tagText}, with comprehensive coverage of all relevant
-            aspects.
-          </p>
-          <p className="text-[#4e5971] mb-4">
-            Detailed examination of each component provides thorough understanding with supporting evidence and context.
-          </p>
-          <p className="text-[#4e5971] mb-4">
-            Extended discussion includes nuanced perspectives and implications for strategic decision-making.
-          </p>
-        </>
-      )
+      return `Further examination reveals additional insights within this section. The document ${toneAdverb} explains how these findings contribute to the overall narrative and supports the main arguments with ${tone === "academic" ? "empirical evidence" : "relevant examples"}.`
     }
   }
 
+  // Helper function to get a random quote
+  const getRandomQuote = (sectionTitle: string) => {
+    const quotes = [
+      "The data clearly indicates a significant trend toward increased market adoption in the coming fiscal year.",
+      "Our analysis suggests that implementing these recommendations could result in a 15-20% improvement in operational efficiency.",
+      "As noted in the research, 'the correlation between these variables presents a compelling case for strategic realignment'.",
+      "The competitive landscape has evolved substantially, requiring a more agile approach to product development.",
+    ]
+    return quotes[Math.floor(Math.random() * quotes.length)]
+  }
+
+  // Helper function to get visual element type
+  const getVisualElementType = (sectionTitle: string) => {
+    if (sectionTitle === "Key Findings") return "Comparison chart of main findings"
+    if (sectionTitle === "Market Analysis") return "Market share pie chart"
+    if (sectionTitle === "Financial Projections") return "Revenue forecast line graph"
+    return "Relevant visualization"
+  }
+
   return (
-    <div className="space-y-6">
-      {/* PDF-like document */}
-      <Card className="border border-[#e1e8f6] shadow-sm">
-        {/* Cover Page */}
-        <div className="p-8 border-b border-[#e1e8f6] bg-white">
-          <div className="flex justify-center mb-8">
-            <div className="h-16 w-16 rounded-full bg-[#f4f9ff] flex items-center justify-center">
-              <FileText className="h-8 w-8 text-[#004ce6]" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-center text-[#001742] mb-4">Personalized Document Summary</h1>
-          <p className="text-center text-[#6e7b96] mb-8">Generated on {formattedDate}</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-            <Card className="border-[#e1e8f6] bg-[#f9fafc]">
-              <CardContent className="p-4">
-                <h3 className="text-sm font-medium text-[#001742] mb-2 flex items-center">
-                  <FileIcon className="h-4 w-4 mr-2 text-[#004ce6]" />
-                  Source Documents
-                </h3>
-                <ul className="text-sm text-[#4e5971] space-y-1">
-                  {documentNames.map((doc, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#004ce6] mr-2"></span>
-                      {doc}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="border-[#e1e8f6] bg-[#f9fafc]">
-              <CardContent className="p-4">
-                <h3 className="text-sm font-medium text-[#001742] mb-2 flex items-center">
-                  <Tag className="h-4 w-4 mr-2 text-[#004ce6]" />
-                  Summary Details
-                </h3>
-                <ul className="text-sm text-[#4e5971] space-y-1">
-                  <li className="flex items-center">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#004ce6] mr-2"></span>
-                    Depth: {summaryDepth === "light" ? "Light" : summaryDepth === "medium" ? "Medium" : "Deep"}
-                  </li>
-                  <li className="flex items-center">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#004ce6] mr-2"></span>
-                    Sections: {sections.length}
-                  </li>
-                  <li className="flex items-center">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#004ce6] mr-2"></span>
-                    Visuals: {tablesAndCharts.length}
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Table of Contents */}
-        <div className="p-8 border-b border-[#e1e8f6] bg-white">
-          <h2 className="text-xl font-bold text-[#001742] mb-6">Table of Contents</h2>
-          <div className="space-y-3">
-            {sections.map((section, index) => (
-              <div key={section.id} className="flex items-center">
-                <span className="font-medium text-[#001742]">{index + 1}.</span>
-                <span className="ml-2 text-[#4e5971]">{section.title}</span>
-                <div className="flex-1 mx-2 border-b border-dotted border-[#dee6f5]"></div>
-                <span className="text-[#6e7b96]">Page {index + 2}</span>
+    <div className="space-y-4">
+      <Card className="border-[#e1e8f6]">
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-[#001742]">Document Summary</h3>
+              <div className="text-xs text-[#6e7b96] bg-[#f4f9ff] px-2 py-1 rounded">
+                {summaryOptions.length} • {summaryOptions.tone}
               </div>
-            ))}
-            {tablesAndCharts.length > 0 && (
-              <div className="flex items-center">
-                <span className="font-medium text-[#001742]">{sections.length + 1}.</span>
-                <span className="ml-2 text-[#4e5971]">Appendix: Tables & Charts</span>
-                <div className="flex-1 mx-2 border-b border-dotted border-[#dee6f5]"></div>
-                <span className="text-[#6e7b96]">Page {sections.length + 2}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Document Content */}
-        <div className="bg-white">
-          {sections.map((section, index) => (
-            <div key={section.id} className="p-8 border-b border-[#e1e8f6]">
-              <div className="text-right text-xs text-[#8098c4] mb-2">Page {index + 2}</div>
-              <h2 className="text-xl font-bold text-[#001742] mb-4">
-                {index + 1}. {section.title}
-              </h2>
-
-              {/* Tags */}
-              {section.tags && section.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {section.tags.map((tag) => (
-                    <div
-                      key={tag}
-                      className="inline-flex items-center px-2 py-1 bg-[#EAF0FC] text-[#004ce6] rounded-md text-xs"
-                    >
-                      {tag}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Content based on depth */}
-              {generateSectionContent(section, summaryDepth)}
             </div>
-          ))}
 
-          {/* Appendix: Tables & Charts */}
-          {tablesAndCharts.length > 0 && (
-            <div className="p-8">
-              <div className="text-right text-xs text-[#8098c4] mb-2">Page {sections.length + 2}</div>
-              <h2 className="text-xl font-bold text-[#001742] mb-6">
-                {sections.length + 1}. Appendix: Tables & Charts
-              </h2>
+            <p className="text-[#4e5971]">
+              Personalized summary of <span className="font-medium">{documentName}</span> with{" "}
+              {sections.length + customSections.length} sections.
+            </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {tablesAndCharts.map((item, index) => (
-                  <Card key={item.id} className="border-[#e1e8f6]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium text-[#001742]">
-                          Figure {index + 1}: {item.title}
-                        </h3>
-                        {item.type === "chart" ? (
-                          <BarChart2 className="h-5 w-5 text-[#004ce6]" />
-                        ) : (
-                          <FileText className="h-5 w-5 text-[#004ce6]" />
-                        )}
+            <Tabs defaultValue="preview" className="mt-6">
+              <TabsList className="grid w-full grid-cols-2 bg-[#f4f7ff]">
+                <TabsTrigger
+                  value="preview"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#001742]"
+                >
+                  Summary Preview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="outline"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#001742]"
+                >
+                  Document Outline
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Summary Preview Tab */}
+              <TabsContent value="preview" className="pt-4">
+                <div className="border border-[#e1e8f6] rounded-md p-4 max-h-[500px] overflow-y-auto">
+                  <div className="prose max-w-none">
+                    <h1 className="text-xl font-bold text-[#001742] mb-4">Summary of {documentName}</h1>
+
+                    {sections.map((section) => (
+                      <div key={section.id} className="mb-6">
+                        <h2 className="text-lg font-semibold text-[#001742] mb-2">{section.title}</h2>
+                        {generateSampleContent(section.title)}
                       </div>
-                      <div className="aspect-video bg-[#f4f9ff] rounded-md flex items-center justify-center">
-                        <p className="text-[#6e7b96] text-sm">
-                          {item.type === "chart" ? "Chart Visualization" : "Table Data"}
+                    ))}
+
+                    {customSections.map((section) => (
+                      <div key={section.id} className="mb-6">
+                        <h2 className="text-lg font-semibold text-[#001742] mb-2">{section.title}</h2>
+                        <p className="mb-3 text-[#4e5971]">
+                          {section.description || "Custom section content based on your specific requirements."}
                         </p>
+                        {generateSampleContent(section.title)}
                       </div>
-                      {item.description && <p className="text-xs text-[#6e7b96] mt-3">{item.description}</p>}
-                      {item.category && (
-                        <div className="mt-2">
-                          <Badge variant="outline" className="text-xs bg-[#f9fafc]">
-                            {item.category}
-                          </Badge>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-[#e1e8f6] bg-[#f9fafc] text-xs text-[#6e7b96] flex justify-between">
-            <div className="flex items-center">
-              <Calendar className="h-3 w-3 mr-1" />
-              Generated on {formattedDate}
-            </div>
-            <div>
-              Personalized summary from {documentNames.length} document{documentNames.length !== 1 ? "s" : ""}
+              {/* Document Outline Tab */}
+              <TabsContent value="outline" className="pt-4">
+                <div className="border border-[#e1e8f6] rounded-md p-4">
+                  <h3 className="text-sm font-medium text-[#001742] mb-3">Document Structure</h3>
+                  <ul className="space-y-2">
+                    {sections.map((section) => (
+                      <li key={section.id} className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-[#8098c4]" />
+                        <span className="text-sm text-[#4e5971]">{section.title}</span>
+                      </li>
+                    ))}
+                    {customSections.map((section) => (
+                      <li key={section.id} className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-[#004ce6]" />
+                        <span className="text-sm text-[#004ce6]">{section.title} (Custom)</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="mt-6 space-y-2">
+              <h4 className="font-medium text-[#001742]">Summary Features:</h4>
+              <ul className="space-y-1 text-sm text-[#4e5971]">
+                <li className="flex items-start gap-2">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                  <span>
+                    {summaryOptions.length === "short"
+                      ? "Concise overview focusing on key points"
+                      : summaryOptions.length === "medium"
+                        ? "Balanced summary with moderate detail"
+                        : "Comprehensive analysis with extensive detail"}
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                  <span>
+                    {summaryOptions.tone === "professional"
+                      ? "Professional tone suitable for business contexts"
+                      : summaryOptions.tone === "casual"
+                        ? "Casual tone that's conversational and accessible"
+                        : "Academic tone with scholarly language and technical precision"}
+                  </span>
+                </li>
+                {summaryOptions.includeKeyQuotes && (
+                  <li className="flex items-start gap-2">
+                    <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                    <span>Key quotes extracted from the original document</span>
+                  </li>
+                )}
+                {summaryOptions.includeVisualElements && (
+                  <li className="flex items-start gap-2">
+                    <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                    <span>Visual elements included for enhanced comprehension</span>
+                  </li>
+                )}
+                <li className="flex items-start gap-2">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-[#004ce6]"></div>
+                  <span>Structured according to your selected sections</span>
+                </li>
+              </ul>
             </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-end">
+      <div className="mt-6 flex flex-wrap gap-2">
         <Button
-          variant="outline"
-          onClick={onRestart}
-          className="border-[#e1e8f6] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6]"
+          size="sm"
+          className="gap-2 bg-[#004ce6] hover:bg-[#0047cb] text-white px-4 py-1.5 h-auto"
+          onClick={handleDownload}
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Start New Summary
+          <Download className="h-4 w-4" />
+          Download PDF Summary
         </Button>
-        <Button onClick={handleDownload} className="bg-[#004ce6] hover:bg-[#0047cb] text-white">
-          <Download className="h-4 w-4 mr-2" />
-          {isDownloading ? "Downloading..." : "Download PDF"}
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6] px-4 py-1.5 h-auto"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Open in PDF Viewer
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-2 border-[#dee6f5] text-[#4e5971] hover:bg-[#f4f9ff] hover:text-[#004ce6] px-4 py-1.5 h-auto"
+          onClick={onRestart}
+        >
+          <RefreshCw className="h-4 w-4" />
+          Summarize Another Document
         </Button>
       </div>
     </div>

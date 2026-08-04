@@ -7,46 +7,34 @@ import { ChatInterface } from "@/components/workflow/chat-interface"
 import { ChatInput } from "@/components/workflow/chat-input"
 import { CustomizationBox } from "@/components/workflow/customization-box"
 import { DocumentUploader } from "@/components/workflow/customization/document-uploader"
+import { SummaryCustomization } from "@/components/workflow/customization/summary-customization"
 import { SummaryResult } from "@/components/workflow/report/summary-result"
 import { WorkflowEngine } from "@/components/workflow/workflow-engine"
-import { DocumentIndexWithTags } from "@/components/workflow/customization/document-index-with-tags"
-import { TableChartSelector } from "@/components/workflow/customization/table-chart-selector"
-import { SummaryDepthSelector } from "@/components/workflow/customization/summary-depth-selector"
 import type { MessageProps } from "@/components/workflow/chat-message"
 
 // Define the workflow configuration
 const workflowConfig = {
   id: "document-summary",
-  title: "Personalized Summary Generator",
-  description: "Generate customized summaries from multiple documents with flexible editing options",
+  title: "Personalized Document Summary Generator",
+  description: "Generate customized summaries from uploaded documents",
   steps: [
     {
       id: 1,
-      title: "Select Documents",
-      description: "Upload or select documents to summarize",
+      title: "Upload Document",
+      description: "Upload a document you want to summarize",
     },
     {
       id: 2,
-      title: "Document Index & Instructions",
-      description: "Customize the document index and provide focus areas",
+      title: "Customize Summary",
+      description: "Select sections and customize summary options",
     },
     {
       id: 3,
-      title: "Select Tables & Charts",
-      description: "Choose which visual elements to include",
+      title: "Processing",
+      description: "Analyzing document and generating summary",
     },
     {
       id: 4,
-      title: "Summary Depth",
-      description: "Select the level of detail for your summary",
-    },
-    {
-      id: 5,
-      title: "Processing",
-      description: "Analyzing documents and generating summary",
-    },
-    {
-      id: 6,
       title: "Review Results",
       description: "Review and download the generated summary",
     },
@@ -54,236 +42,24 @@ const workflowConfig = {
   initialMessage: (
     <div className="space-y-4">
       <p className="text-[#001742]">
-        Ready to create your personalized summary? Please upload or select the documents you want to summarize. You can
-        select multiple documents, and we'll combine them into one index.
+        Welcome to the Personalized Document Summary Generator. Please upload a document (PDF, Word, PowerPoint, etc.)
+        that you'd like to summarize.
       </p>
     </div>
   ),
 }
 
-// Updated document sections based on the provided outline
+// Sample document sections that would be "detected" from the uploaded document
 const sampleDocumentSections = [
-  {
-    id: "executive",
-    title: "1. Executive Summary",
-    selected: true,
-    tags: ["Purpose & Scope", "Key Findings"],
-    description: "Purpose & Scope, Key Findings",
-  },
-  {
-    id: "market",
-    title: "2. Market Overview",
-    selected: true,
-    tags: [
-      "Industry Definition & Classification",
-      "Historical Market Size & Growth",
-      "Demand Drivers",
-      "Macroeconomic & Policy Context",
-    ],
-    description:
-      "Industry Definition & Classification, Historical Market Size & Growth, Demand Drivers, Macroeconomic & Policy Context",
-  },
-  {
-    id: "segmentation",
-    title: "3. Market Segmentation",
-    selected: true,
-    tags: ["By Product / Therapy", "By Geography", "By End-User"],
-    description: "By Product / Therapy, By Geography, By End-User",
-  },
-  {
-    id: "regulatory",
-    title: "4. Regulatory & Compliance Landscape",
-    selected: true,
-    tags: ["Key Global Regulatory Bodies", "Current Regulatory Landscape in India", "Upcoming Policy Changes"],
-    description: "Key Global Regulatory Bodies, Current Regulatory Landscape in India, Upcoming Policy Changes",
-  },
-  {
-    id: "competitive",
-    title: "5. Competitive Landscape",
-    selected: true,
-    tags: ["Market Share of Top Players", "Porter's Five Forces Analysis", "SWOT of Leading Firms"],
-    description: "Market Share of Top Players, Porter's Five Forces Analysis, SWOT of Leading Firms",
-  },
-  {
-    id: "supply",
-    title: "6. Supply Chain & Manufacturing",
-    selected: true,
-    tags: ["Upstream Sourcing & Production", "Distribution & Logistics", "Manufacturing Trends"],
-    description: "Upstream Sourcing & Production, Distribution & Logistics, Manufacturing Trends",
-  },
-  {
-    id: "research",
-    title: "7. Research, Development & Innovation",
-    selected: true,
-    tags: ["R&D Expenditure & Productivity", "Key Technological Enablers", "Clinical Trials & Pipeline Insights"],
-    description: "R&D Expenditure & Productivity, Key Technological Enablers, Clinical Trials & Pipeline Insights",
-  },
-  {
-    id: "financial",
-    title: "8. Financial Performance & Capital Markets",
-    selected: true,
-    tags: ["Revenue & Profitability Benchmarks", "Investment & Funding Flows", "Market Valuations & Multiples"],
-    description: "Revenue & Profitability Benchmarks, Investment & Funding Flows, Market Valuations & Multiples",
-  },
-  {
-    id: "mergers",
-    title: "9. Mergers, Acquisitions & Partnerships",
-    selected: true,
-    tags: ["M&A Activity Overview", "Licensing & Co-development Deals", "Integration & Synergy Realization"],
-    description: "M&A Activity Overview, Licensing & Co-development Deals, Integration & Synergy Realization",
-  },
-  {
-    id: "trends",
-    title: "10. Emerging Trends & Opportunities",
-    selected: true,
-    tags: ["Digital Transformation", "Personalised & Precision Medicine", "Sustainability & Green Chemistry"],
-    description: "Digital Transformation, Personalised & Precision Medicine, Sustainability & Green Chemistry",
-  },
-  {
-    id: "risks",
-    title: "11. Risks & Challenges",
-    selected: true,
-    tags: ["Patent Expiries & Generic Erosion", "Regulatory & Pricing Pressures", "Supply Chain Disruptions"],
-    description: "Patent Expiries & Generic Erosion, Regulatory & Pricing Pressures, Supply Chain Disruptions",
-  },
-  {
-    id: "outlook",
-    title: "12. Future Outlook & Strategic Recommendations",
-    selected: true,
-    tags: ["Market Forecasts & Scenarios", "Strategic Levers for Stakeholders", "Long-term Industry Trends"],
-    description: "Market Forecasts & Scenarios, Strategic Levers for Stakeholders, Long-term Industry Trends",
-  },
-  {
-    id: "appendices",
-    title: "13. Appendices & Methodology",
-    selected: true,
-    tags: ["Data Sources & Assumptions", "Glossary of Terms & Abbreviations", "List of Figures & Tables"],
-    description: "Data Sources & Assumptions, Glossary of Terms & Abbreviations, List of Figures & Tables",
-  },
-]
-
-// Enhanced sample tables and charts with descriptions and categories
-const sampleTablesAndCharts = [
-  {
-    id: "table1",
-    type: "table",
-    title: "Revenue by Region (2020-2023)",
-    selected: true,
-    description: "Quarterly breakdown of revenue across all geographic regions",
-    category: "Financial",
-  },
-  {
-    id: "table2",
-    type: "table",
-    title: "Cost Breakdown by Department",
-    selected: false,
-    description: "Detailed analysis of operational costs by department",
-    category: "Financial",
-  },
-  {
-    id: "chart1",
-    type: "chart",
-    title: "Market Share Comparison",
-    selected: true,
-    description: "Competitive analysis of market share across key players",
-    category: "Market",
-  },
-  {
-    id: "chart2",
-    type: "chart",
-    title: "Revenue Growth Trend (2019-2023)",
-    selected: false,
-    description: "Year-over-year revenue growth with quarterly breakdown",
-    category: "Financial",
-  },
-  {
-    id: "table3",
-    type: "table",
-    title: "Quarterly Financial Results",
-    selected: false,
-    description: "Comprehensive P&L statement with year-over-year comparison",
-    category: "Financial",
-  },
-  {
-    id: "chart3",
-    type: "chart",
-    title: "Product Category Performance",
-    selected: true,
-    description: "Sales performance across product categories with growth indicators",
-    category: "Products",
-  },
-  {
-    id: "table4",
-    type: "table",
-    title: "Employee Headcount by Department",
-    selected: false,
-    description: "Staffing levels across departments with YoY changes",
-    category: "Operations",
-  },
-  {
-    id: "chart4",
-    type: "chart",
-    title: "Customer Acquisition Cost Trend",
-    selected: false,
-    description: "Monthly CAC with channel attribution analysis",
-    category: "Marketing",
-  },
-  {
-    id: "chart5",
-    type: "chart",
-    title: "Regional Market Penetration",
-    selected: false,
-    description: "Heat map showing market penetration across regions",
-    category: "Market",
-  },
-  {
-    id: "table5",
-    type: "table",
-    title: "Key Risk Factors Assessment",
-    selected: false,
-    description: "Evaluation of major risk factors with impact ratings",
-    category: "Risk",
-  },
-  {
-    id: "chart6",
-    type: "chart",
-    title: "Customer Satisfaction Scores",
-    selected: false,
-    description: "NPS and CSAT scores tracked over the last 8 quarters",
-    category: "Customer",
-  },
-  {
-    id: "table6",
-    type: "table",
-    title: "Competitive Feature Comparison",
-    selected: false,
-    description: "Side-by-side comparison of features against competitors",
-    category: "Market",
-  },
-  {
-    id: "pie1",
-    type: "chart",
-    title: "Revenue Distribution by Product Line",
-    selected: false,
-    description: "Pie chart showing the percentage breakdown of revenue by product line",
-    category: "Financial",
-  },
-  {
-    id: "line1",
-    type: "chart",
-    title: "Monthly Active Users Trend",
-    selected: false,
-    description: "Line chart tracking the growth of monthly active users over time",
-    category: "User Metrics",
-  },
-  {
-    id: "table7",
-    type: "table",
-    title: "Regulatory Compliance Status",
-    selected: false,
-    description: "Status of compliance with key regulatory requirements by region",
-    category: "Regulatory",
-  },
+  { id: "executive", title: "Executive Summary", selected: true },
+  { id: "introduction", title: "Introduction", selected: true },
+  { id: "methodology", title: "Methodology", selected: true },
+  { id: "findings", title: "Key Findings", selected: true },
+  { id: "market_analysis", title: "Market Analysis", selected: true },
+  { id: "financial_projections", title: "Financial Projections", selected: true },
+  { id: "recommendations", title: "Recommendations", selected: true },
+  { id: "conclusion", title: "Conclusion", selected: true },
+  { id: "appendix", title: "Appendix", selected: false },
 ]
 
 export default function DocumentSummaryPage() {
@@ -296,26 +72,14 @@ export default function DocumentSummaryPage() {
   const [isSummaryComplete, setIsSummaryComplete] = useState(false)
   const [activeCustomizationId, setActiveCustomizationId] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
-
-  // Document states
-  const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([])
+  const [uploadedDocument, setUploadedDocument] = useState<string | null>(null)
   const [documentSections, setDocumentSections] = useState(sampleDocumentSections)
-  const [customSections, setCustomSections] = useState<
-    Array<{
-      id: string
-      title: string
-      selected: boolean
-      tags: string[]
-      description: string
-    }>
-  >([])
-  const [tablesAndCharts, setTablesAndCharts] = useState(sampleTablesAndCharts)
-
-  // Summary options
-  const [summaryDepth, setSummaryDepth] = useState<"light" | "medium" | "deep">("medium")
+  const [customSections, setCustomSections] = useState<Array<{ id: string; title: string; description: string }>>([])
   const [summaryOptions, setSummaryOptions] = useState({
+    length: "medium", // short, medium, detailed
+    tone: "professional", // professional, casual, academic
     includeKeyQuotes: true,
-    includeVisualElements: true,
+    includeVisualElements: false,
   })
 
   // References
@@ -329,31 +93,29 @@ export default function DocumentSummaryPage() {
     setActiveCustomizationId(workflowEngine.getActiveCustomizationId())
   }, [])
 
-  // Handle document upload/selection
-  const handleDocumentUpload = (documentNames: string[]) => {
-    setUploadedDocuments(documentNames)
-    setCurrentStep(2) // Move to document indexing & instructions step
+  // Handle document upload
+  const handleDocumentUpload = (documentName: string) => {
+    setUploadedDocument(documentName)
+    setCurrentStep(2) // Move to summary customization step
 
     // Add user message
-    const documentsText = documentNames.join(", ")
-    workflowEngine.addMessage("user", `I've selected these documents for summarization: ${documentsText}`)
+    workflowEngine.addMessage("user", `I've uploaded ${documentName} for summarization`)
 
     // Show loading message for document analysis
-    workflowEngine.addLoadingMessage("Analyzing and indexing documents...")
+    workflowEngine.addLoadingMessage("Analyzing document structure and content...")
     setMessages(workflowEngine.getMessages())
 
     // Simulate document analysis
     setTimeout(() => {
       workflowEngine.removeLoadingMessage()
 
-      // Show document index with tags
+      // Show summary customization options
       const newId = workflowEngine.addMessage(
         "system",
         <div className="space-y-4">
           <p className="text-[#001742]">
-            📝 Your documents have been indexed and combined into a single document index. Below is the list of sections
-            that have been automatically extracted. For each section, I've identified key topics as tags that you can
-            customize to focus your summary.
+            I've analyzed your document and identified several sections. Please customize which sections you'd like to
+            include in the summary and adjust other options:
           </p>
         </div>,
         true,
@@ -364,13 +126,18 @@ export default function DocumentSummaryPage() {
     }, 2000)
   }
 
-  // Handle document index with tags
-  const handleIndexWithTags = (sections: typeof documentSections, custom: typeof customSections) => {
+  // Handle summary customization
+  const handleSummaryCustomization = (
+    sections: typeof documentSections,
+    custom: typeof customSections,
+    options: typeof summaryOptions,
+  ) => {
     setDocumentSections(sections)
     setCustomSections(custom)
-    setCurrentStep(3) // Move to tables and charts selection step
+    setSummaryOptions(options)
+    setCurrentStep(3) // Move to processing step
 
-    // Add user message
+    // Add user message with customization details
     const selectedSections = [...sections.filter((s) => s.selected).map((s) => s.title)]
     if (custom.length > 0) {
       selectedSections.push(...custom.map((s) => s.title))
@@ -378,88 +145,34 @@ export default function DocumentSummaryPage() {
 
     workflowEngine.addMessage(
       "user",
-      `I've customized the document index with these sections: ${selectedSections.join(", ")} and provided focus areas for each section.`,
+      `I want a ${options.length} ${options.tone} summary including these sections: ${selectedSections.join(
+        ", ",
+      )}. ${options.includeKeyQuotes ? "Include key quotes. " : ""}${
+        options.includeVisualElements ? "Include visual elements." : ""
+      }`,
     )
-
-    // Show tables and charts selection UI
-    const newId = workflowEngine.addMessage(
-      "system",
-      <div className="space-y-4">
-        <p className="text-[#001742]">
-          📊 I've found multiple tables and charts in your documents. Select the visual elements you want to include in
-          your summary to help illustrate key data points and insights.
-        </p>
-      </div>,
-      true,
-    )
-
-    setActiveCustomizationId(newId)
-    setMessages(workflowEngine.getMessages())
-  }
-
-  // Handle tables and charts selection
-  const handleTablesChartsSelection = (selectedItems: typeof tablesAndCharts) => {
-    setTablesAndCharts(selectedItems)
-    setCurrentStep(4) // Move to summary depth selection step
-
-    // Add user message
-    const selectedCount = selectedItems.filter((item) => item.selected).length
-    workflowEngine.addMessage("user", `I've selected ${selectedCount} tables and charts to include in the summary.`)
-
-    // Show summary depth selection UI
-    const newId = workflowEngine.addMessage(
-      "system",
-      <div className="space-y-4">
-        <p className="text-[#001742]">📄 How detailed should the summary be?</p>
-      </div>,
-      true,
-    )
-
-    setActiveCustomizationId(newId)
-    setMessages(workflowEngine.getMessages())
-  }
-
-  // Handle summary depth selection
-  const handleSummaryDepthSelection = (depth: "light" | "medium" | "deep") => {
-    setSummaryDepth(depth)
-    setCurrentStep(5) // Move to processing step
-
-    // Add user message
-    const depthText =
-      depth === "light"
-        ? "Light (key takeaways)"
-        : depth === "medium"
-          ? "Medium (key insights with elaboration)"
-          : "Deep (detailed analysis)"
-
-    workflowEngine.addMessage("user", `I want a ${depthText} summary.`)
 
     // Show processing message
-    workflowEngine.addLoadingMessage("Generating your personalized summary now...")
+    workflowEngine.addLoadingMessage("Analyzing document content...")
     setMessages(workflowEngine.getMessages())
 
     // Simulate processing steps
     setTimeout(() => {
-      workflowEngine.updateLoadingMessage("Analyzing document content...")
+      workflowEngine.updateLoadingMessage("Extracting key information from selected sections...")
       setMessages(workflowEngine.getMessages())
 
       setTimeout(() => {
-        workflowEngine.updateLoadingMessage("Extracting key information from selected sections...")
+        workflowEngine.updateLoadingMessage("Generating summary with specified parameters...")
         setMessages(workflowEngine.getMessages())
 
         setTimeout(() => {
-          workflowEngine.updateLoadingMessage("Applying your custom focus areas to each section...")
+          workflowEngine.updateLoadingMessage("Formatting summary and preparing output...")
           setMessages(workflowEngine.getMessages())
 
           setTimeout(() => {
-            workflowEngine.updateLoadingMessage("Formatting summary and preparing output...")
+            workflowEngine.removeLoadingMessage()
+            showSummaryResults()
             setMessages(workflowEngine.getMessages())
-
-            setTimeout(() => {
-              workflowEngine.removeLoadingMessage()
-              showSummaryResults()
-              setMessages(workflowEngine.getMessages())
-            }, 1500)
           }, 1500)
         }, 1500)
       }, 1500)
@@ -468,7 +181,7 @@ export default function DocumentSummaryPage() {
 
   // Show summary results
   const showSummaryResults = () => {
-    setCurrentStep(6) // Move to results step
+    setCurrentStep(4) // Move to results step
     setIsSummaryComplete(true)
 
     // Clear active customization before showing the final result
@@ -479,15 +192,13 @@ export default function DocumentSummaryPage() {
       "system",
       <div className="space-y-4">
         <p className="text-[#001742]">
-          ✅ Your personalized summary is ready! You can download it as a PDF document or view the summary right here in
-          the chat.
+          I've generated a personalized summary of your document based on your preferences. Here's the result:
         </p>
 
         <SummaryResult
-          documentNames={uploadedDocuments}
-          sections={[...documentSections.filter((s) => s.selected), ...customSections.filter((s) => s.selected)]}
-          tablesAndCharts={tablesAndCharts.filter((item) => item.selected)}
-          summaryDepth={summaryDepth}
+          documentName={uploadedDocument || "document.pdf"}
+          sections={documentSections.filter((s) => s.selected)}
+          customSections={customSections}
           summaryOptions={summaryOptions}
           onRestart={() => {
             // Reset the workflow
@@ -496,14 +207,14 @@ export default function DocumentSummaryPage() {
             setActiveCustomizationId(workflowEngine.getActiveCustomizationId())
             setCurrentStep(1)
             setIsSummaryComplete(false)
-            setUploadedDocuments([])
+            setUploadedDocument(null)
             setDocumentSections(sampleDocumentSections)
             setCustomSections([])
-            setTablesAndCharts(sampleTablesAndCharts)
-            setSummaryDepth("medium")
             setSummaryOptions({
+              length: "medium",
+              tone: "professional",
               includeKeyQuotes: true,
-              includeVisualElements: true,
+              includeVisualElements: false,
             })
           }}
         />
@@ -525,33 +236,17 @@ export default function DocumentSummaryPage() {
   const renderCustomizationContent = () => {
     switch (currentStep) {
       case 1:
-        return <DocumentUploader onUpload={handleDocumentUpload} allowMultiple={true} />
+        return <DocumentUploader onUpload={handleDocumentUpload} />
       case 2:
         return (
-          <DocumentIndexWithTags
+          <SummaryCustomization
             documentSections={documentSections}
             customSections={customSections}
+            summaryOptions={summaryOptions}
             onUpdateSections={setDocumentSections}
             onUpdateCustomSections={setCustomSections}
-            onSubmit={handleIndexWithTags}
-          />
-        )
-      case 3:
-        return (
-          <TableChartSelector
-            tablesAndCharts={tablesAndCharts}
-            onUpdateSelection={setTablesAndCharts}
-            onSubmit={handleTablesChartsSelection}
-          />
-        )
-      case 4:
-        return (
-          <SummaryDepthSelector
-            depth={summaryDepth}
-            onUpdateDepth={setSummaryDepth}
-            options={summaryOptions}
             onUpdateOptions={setSummaryOptions}
-            onSubmit={handleSummaryDepthSelection}
+            onSubmit={handleSummaryCustomization}
           />
         )
       default:
@@ -572,7 +267,10 @@ export default function DocumentSummaryPage() {
 
   return (
     <WorkflowLayout>
-      <WorkflowHeader title="Personalized Summary Generator" breadcrumbs={[{ label: "Workflows", href: "/" }]} />
+      <WorkflowHeader
+        title="Personalized Document Summary Generator"
+        breadcrumbs={[{ label: "Workflows", href: "/" }]}
+      />
 
       {isMounted && (
         <>

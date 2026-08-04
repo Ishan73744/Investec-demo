@@ -113,11 +113,6 @@ export default function ScreenshotChartPage() {
     addTrendlines: false,
   })
 
-  // Add these new state variables after the existing ones
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
-  const [conversionResult, setConversionResult] = useState<any>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-
   // References
   const contentContainerRef = useRef<HTMLDivElement>(null)
 
@@ -130,25 +125,37 @@ export default function ScreenshotChartPage() {
   }, [])
 
   // Handle screenshot upload
-  const handleScreenshotUpload = (imageUrl: string, filename: string) => {
-    setUploadedScreenshot(filename)
-    setUploadedImageUrl(imageUrl)
+  const handleScreenshotUpload = (screenshotName: string) => {
+    setUploadedScreenshot(screenshotName)
     setCurrentStep(2) // Move to chart type confirmation step
 
-    // Add user message with actual uploaded image
+    // Add user message with image
     const userMessageId = Date.now().toString()
     setMessages((prevMessages) => [
       ...prevMessages,
       {
         id: userMessageId,
         role: "user",
-        content: <UserMessageWithImage content="I have uploaded a screenshot of a chart." imageSrc={imageUrl} />,
+        content: (
+          <UserMessageWithImage
+            content="I have uploaded a screenshot of a chart."
+            imageSrc="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Uhbyd7u9OY5oGlF1HzxG1LrIcoWPZe.png"
+          />
+        ),
         timestamp: new Date(),
       },
     ])
 
     // Show loading message for chart detection
+    workflowEngine.addLoadingMessage("Analyzing screenshot and detecting chart type...")
+    setMessages((prevMessages) => prevMessages)
+
+    // Simulate chart detection
     setTimeout(() => {
+      // Remove loading message
+      setMessages((prevMessages) => prevMessages.filter((msg) => msg.role !== "loading"))
+
+      // Show chart type confirmation
       const newId = Date.now().toString()
       setMessages((prevMessages) => [
         ...prevMessages,
@@ -169,7 +176,7 @@ export default function ScreenshotChartPage() {
       ])
 
       setActiveCustomizationId(newId)
-    }, 1000)
+    }, 2000)
   }
 
   // Handle chart type selection
@@ -215,10 +222,9 @@ export default function ScreenshotChartPage() {
   }
 
   // Handle chart customization
-  const handleChartCustomization = async (options: typeof chartOptions) => {
+  const handleChartCustomization = (options: typeof chartOptions) => {
     setChartOptions(options)
     setCurrentStep(4) // Move to processing step
-    setIsProcessing(true)
 
     // Add user message
     const customizationDetails = []
@@ -245,65 +251,45 @@ export default function ScreenshotChartPage() {
       {
         id: loadingId,
         role: "loading",
-        content: "Analyzing chart structure...",
+        content: "Extracting data points from chart...",
         timestamp: new Date(),
       },
     ])
 
-    try {
-      // Call the chart-to-excel API
-      const response = await fetch("/api/chart-to-excel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl: uploadedImageUrl,
-          chartType: chartType,
-          options: options,
-          metadata: {
-            filename: uploadedScreenshot,
-            uploadedAt: new Date().toISOString(),
-          },
-        }),
-      })
+    // Simulate processing steps
+    setTimeout(() => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === loadingId ? { ...msg, content: "Identifying axes and data series..." } : msg,
+        ),
+      )
 
-      const result = await response.json()
-
-      if (result.success) {
-        setConversionResult(result)
-        // Remove loading message
-        setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== loadingId))
-        showConversionResults(result)
-      } else {
-        throw new Error(result.error || "Conversion failed")
-      }
-    } catch (error) {
-      console.error("Conversion error:", error)
-      // Remove loading message and show error
-      setMessages((prevMessages) => [
-        ...prevMessages.filter((msg) => msg.id !== loadingId),
-        {
-          id: Date.now().toString(),
-          role: "system",
-          content: (
-            <div className="space-y-4">
-              <p className="text-red-600">Sorry, there was an error converting your chart. Please try again.</p>
-              <p className="text-sm text-[#8098c4]">
-                Error: {error instanceof Error ? error.message : "Unknown error"}
-              </p>
-            </div>
+      setTimeout(() => {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.id === loadingId ? { ...msg, content: "Converting to Excel format..." } : msg,
           ),
-          timestamp: new Date(),
-        },
-      ])
-    } finally {
-      setIsProcessing(false)
-    }
+        )
+
+        setTimeout(() => {
+          setMessages((prevMessages) =>
+            prevMessages.map((msg) =>
+              msg.id === loadingId ? { ...msg, content: "Applying formatting and customizations..." } : msg,
+            ),
+          )
+
+          setTimeout(() => {
+            // Remove loading message
+            setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== loadingId))
+            showConversionResults()
+          }, 1500)
+        }, 1500)
+      }, 1500)
+    }, 1500)
   }
 
   // Show conversion results
-  const showConversionResults = (result?: any) => {
+  const showConversionResults = () => {
     setCurrentStep(5) // Move to results step
     setIsConversionComplete(true)
 
@@ -327,9 +313,6 @@ export default function ScreenshotChartPage() {
               chartType={chartType}
               chartOptions={chartOptions}
               screenshotName={uploadedScreenshot || "chart_screenshot.png"}
-              excelFileUrl={result?.excelFileUrl}
-              extractedData={result?.extractedData}
-              processingTime={result?.processingTime}
               onRestart={() => {
                 // Reset the workflow
                 setMessages([])
@@ -339,8 +322,6 @@ export default function ScreenshotChartPage() {
                 setCurrentStep(1)
                 setIsConversionComplete(false)
                 setUploadedScreenshot(null)
-                setUploadedImageUrl(null)
-                setConversionResult(null)
                 setChartType("bar")
                 setChartOptions({
                   includeDataTable: true,
